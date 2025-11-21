@@ -127,13 +127,6 @@ if uploaded_file:
                 st.error("No Excel engine available (xlsxwriter/openpyxl missing). Cannot export.")
             )
 
-# ------------------------
-# requirements.txt content
-# ------------------------
-# streamlit
-# pandas
-# xlsxwriter
-# altair
 
 # ------------------------
 # Basic test cases
