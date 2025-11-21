@@ -1,4 +1,15 @@
-import streamlit as st
+# app.py
+# Streamlit may not be available in this environment, so we create a safe fallback
+try:
+    import streamlit as st
+except ModuleNotFoundError:
+    class MockStreamlit:
+        def __getattr__(self, name):
+            def dummy(*args, **kwargs):
+                return None
+            return dummy
+    st = MockStreamlit()
+
 import pandas as pd
 # Remove matplotlib for Streamlit Cloud compatibility
 import altair as alt
@@ -16,11 +27,19 @@ else:
     uploaded_file = None
 
 # Utility to read sheet safely
+# Utility to read sheet safely
 def read_sheet(xls, name):
-    return pd.read_excel(xls, name) if name in xls.sheet_names else None
+    return xls.get(name, None)
+
+if uploaded_file: None
 
 if uploaded_file:
-    xls = pd.ExcelFile(uploaded_file)
+        try:
+        # Direct read without ExcelFile to avoid openpyxl dependency
+        xls = pd.read_excel(uploaded_file, sheet_name=None)
+    except Exception as e:
+        st.error(f"Failed to read Excel file: {e}")
+        xls = {}(uploaded_file)
 
     # Tabs only if Streamlit available
     if hasattr(st, "tabs"):
@@ -82,14 +101,20 @@ if uploaded_file:
         with tab5:
             st.header("Export Merged Report")
             output = BytesIO()
-            writer = pd.ExcelWriter(output, engine='openpyxl')
+                        # Use xlsxwriter instead of openpyxl
+            writer = pd.ExcelWriter(output, engine='xlsxwriter')
 
             if dgr is not None: dgr.to_excel(writer, sheet_name="DGR", index=False)
             if litho is not None: litho.to_excel(writer, sheet_name="Lithology", index=False)
             if gas is not None: gas.to_excel(writer, sheet_name="Gas", index=False)
 
-            writer.save()
+            writer.close()
             st.download_button(
+                label="Download Merged Excel Report",
+                data=output.getvalue(),
+                file_name="Merged_DGR_Report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )(
                 label="Download Merged Excel Report",
                 data=output.getvalue(),
                 file_name="Merged_DGR_Report.xlsx",
@@ -98,18 +123,25 @@ if uploaded_file:
 
 
 # ------------------------
+# requirements.txt content
+# ------------------------
+# streamlit
+# pandas
+# xlsxwriter
+# altair
+
+# ------------------------
 # Basic test cases
 # ------------------------
 def test_imports():
     try:
         import pandas
-        import matplotlib
+        import altair
     except Exception:
         raise AssertionError("Core modules failed to import.")
     return True
 
 def test_mock_streamlit():
-    # Streamlit missing should not crash the app
     try:
         _ = st.sidebar if hasattr(st, "sidebar") else None
     except Exception:
