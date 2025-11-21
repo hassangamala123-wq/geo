@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+# Remove matplotlib for Streamlit Cloud compatibility
+import altair as alt
 from io import BytesIO
 
 # Fallback safeguards for missing Streamlit
@@ -69,10 +70,10 @@ if uploaded_file:
                 existing = [c for c in numeric_cols if c in gas.columns]
 
                 for col in existing:
-                    fig, ax = plt.subplots()
-                    ax.plot(gas[col])
-                    ax.set_title(f"{col} Trend")
-                    st.pyplot(fig)
+                    chart = alt.Chart(gas.reset_index()).mark_line().encode(
+                        x='index', y=col, tooltip=[col]
+                    ).properties(title=f"{col} Trend", height=300)
+                    st.altair_chart(chart, use_container_width=True)
             else:
                 st.warning("No gas sheet to chart.")
 
@@ -95,14 +96,6 @@ if uploaded_file:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-
-# ------------------------
-# requirements.txt content
-# ------------------------
-# streamlit
-# pandas
-# openpyxl
-# matplotlib
 
 # ------------------------
 # Basic test cases
