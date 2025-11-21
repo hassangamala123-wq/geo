@@ -116,14 +116,13 @@ if uploaded_file:
                 gas.to_excel(writer, sheet_name="Gas", index=False)
 
             if writer_ok:
-                writer.close()()
-
-            if writer_ok:
-                st.download_button((
-                label="Download Merged Excel Report",
-                data=output.getvalue(),
-                file_name="Merged_DGR_Report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                writer.close()
+                st.download_button(
+                    label="Download Merged Excel Report",
+                    data=output.getvalue(),
+                    file_name="Merged_DGR_Report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
             else:
                 st.error("No Excel engine available (xlsxwriter/openpyxl missing). Cannot export.")
             )
