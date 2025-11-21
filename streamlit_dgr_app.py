@@ -1,15 +1,4 @@
-# app.py
-# Streamlit may not be available in this environment, so we create a safe fallback
-try:
-    import streamlit as st
-except ModuleNotFoundError:
-    class MockStreamlit:
-        def __getattr__(self, name):
-            def dummy(*args, **kwargs):
-                return None
-            return dummy
-    st = MockStreamlit()
-
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import BytesIO
