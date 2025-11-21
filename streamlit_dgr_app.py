@@ -27,8 +27,25 @@ else:
     uploaded_file = None
 
 # Read sheet safely
-def read_sheet(xls, name):
-    return xls.get(name)
+import difflib
+
+def read_sheet(xls, target):
+    if not xls:
+        return None
+    names = list(xls.keys())
+    # Exact match first
+    if target in names:
+        return xls[target]
+    # Fuzzy match (case-insensitive)
+    lower_map = {n.lower(): n for n in names}
+    target_l = target.lower()
+    if target_l in lower_map:
+        return xls[lower_map[target_l]]
+    # Closest match using difflib
+    close = difflib.get_close_matches(target_l, lower_map.keys(), n=1, cutoff=0.5)
+    if close:
+        return xls[lower_map[close[0]]]
+    return None
 
 # --- MAIN EXECUTION ---
 if uploaded_file:
