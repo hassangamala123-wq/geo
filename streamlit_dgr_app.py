@@ -101,10 +101,12 @@ if uploaded_file:
             st.header("Export Merged Report")
             output = BytesIO()
             try:
-                import xlsxwriter  # check availability
+                import xlsxwriter
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
+                writer_ok = True
             except Exception:
-                writer = pd.ExcelWriter(output)  # fallback to default engine
+                writer_ok = False
+                writer = None  # no engine available  # fallback to default engine
 
             if dgr is not None:
                 dgr.to_excel(writer, sheet_name="DGR", index=False)
@@ -113,13 +115,17 @@ if uploaded_file:
             if gas is not None:
                 gas.to_excel(writer, sheet_name="Gas", index=False)
 
-            writer.close()
+            if writer_ok:
+                writer.close()()
 
-            st.download_button(
+            if writer_ok:
+                st.download_button((
                 label="Download Merged Excel Report",
                 data=output.getvalue(),
                 file_name="Merged_DGR_Report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            else:
+                st.error("No Excel engine available (xlsxwriter/openpyxl missing). Cannot export.")
             )
 
 # ------------------------
