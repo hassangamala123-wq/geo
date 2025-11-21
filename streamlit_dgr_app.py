@@ -100,7 +100,11 @@ if uploaded_file:
         with tab5:
             st.header("Export Merged Report")
             output = BytesIO()
-            writer = pd.ExcelWriter(output, engine='xlsxwriter')
+            try:
+                import xlsxwriter  # check availability
+                writer = pd.ExcelWriter(output, engine='xlsxwriter')
+            except Exception:
+                writer = pd.ExcelWriter(output)  # fallback to default engine
 
             if dgr is not None:
                 dgr.to_excel(writer, sheet_name="DGR", index=False)
