@@ -1,13 +1,24 @@
-import streamlit as st
+# app.py
+# Streamlit safe import
+try:
+    import streamlit as st
+except ModuleNotFoundError:
+    class MockStreamlit:
+        def __getattr__(self, name):
+            def dummy(*args, **kwargs):
+                return None
+            return dummy
+    st = MockStreamlit()
+
 import pandas as pd
-# Remove matplotlib for Streamlit Cloud compatibility
 import altair as alt
 from io import BytesIO
 
-# Fallback safeguards for missing Streamlit
+# Configure page
 if hasattr(st, "set_page_config"):
     st.set_page_config(page_title="Daily Geological Report Analyzer", layout="wide")
 
+# Sidebar
 if hasattr(st, "sidebar"):
     st.sidebar.title("DGR Analyzer")
     st.sidebar.info("Upload your Daily Geological Report Excel file.")
@@ -15,22 +26,20 @@ if hasattr(st, "sidebar"):
 else:
     uploaded_file = None
 
-# Utility to read sheet safely
-# Utility to read sheet safely
+# Read sheet safely
 def read_sheet(xls, name):
-    return xls.get(name, None)
+    return xls.get(name)
 
-if uploaded_file: None
-
+# --- MAIN EXECUTION ---
 if uploaded_file:
-        try:
-        # Direct read without ExcelFile to avoid openpyxl dependency
+    try:
+        # Read all sheets at once without openpyxl dependency
         xls = pd.read_excel(uploaded_file, sheet_name=None)
     except Exception as e:
         st.error(f"Failed to read Excel file: {e}")
-        xls = {}(uploaded_file)
+        xls = {}
 
-    # Tabs only if Streamlit available
+    # Tabs
     if hasattr(st, "tabs"):
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Well Information", "Lithology", "Gas Readings", "Charts", "Export Report"
@@ -38,6 +47,7 @@ if uploaded_file:
     else:
         tab1 = tab2 = tab3 = tab4 = tab5 = None
 
+    # Extract sheets
     dgr = read_sheet(xls, "Daily Geological Report")
     litho = read_sheet(xls, "Lithological Description")
     gas = read_sheet(xls, "Lithology %, ROP & Gas Reading")
@@ -90,26 +100,23 @@ if uploaded_file:
         with tab5:
             st.header("Export Merged Report")
             output = BytesIO()
-                        # Use xlsxwriter instead of openpyxl
             writer = pd.ExcelWriter(output, engine='xlsxwriter')
 
-            if dgr is not None: dgr.to_excel(writer, sheet_name="DGR", index=False)
-            if litho is not None: litho.to_excel(writer, sheet_name="Lithology", index=False)
-            if gas is not None: gas.to_excel(writer, sheet_name="Gas", index=False)
+            if dgr is not None:
+                dgr.to_excel(writer, sheet_name="DGR", index=False)
+            if litho is not None:
+                litho.to_excel(writer, sheet_name="Lithology", index=False)
+            if gas is not None:
+                gas.to_excel(writer, sheet_name="Gas", index=False)
 
             writer.close()
+
             st.download_button(
                 label="Download Merged Excel Report",
                 data=output.getvalue(),
                 file_name="Merged_DGR_Report.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )(
-                label="Download Merged Excel Report",
-                data=output.getvalue(),
-                file_name="Merged_DGR_Report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-
 
 # ------------------------
 # requirements.txt content
